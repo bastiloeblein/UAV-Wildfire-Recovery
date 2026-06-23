@@ -1,0 +1,36 @@
+# Python / Jupyter
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+
+# Environments
+wildfire_env/
+venv/
+env/
+.conda/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+
+# Drohnen-Bilder & Geodaten (Keine fetten Dateien pushen!)
+*.tif
+*.tiff
+*.tfw
+*.aux.xml
+*.ovr
+*.geojson
+*.shp
+*.shx
+*.dbf
+*.prj
+*.pdf
+*.xml
+*.png
+*.cpg
+*.qmd

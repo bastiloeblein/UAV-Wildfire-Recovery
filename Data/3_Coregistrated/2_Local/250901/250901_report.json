@@ -1,0 +1,13 @@
+{
+    "Status": "Success",
+    "Total_Points_Calculated": 24249,
+    "Valid_Points_Used": 4197,
+    "Mean_Shift_X_pixels": 0.3728819192670038,
+    "Mean_Shift_Y_pixels": 0.22693449627628107,
+    "Mean_Shift_X_meters": 0.009322047990683332,
+    "Mean_Shift_Y_meters": -0.005673362492932744,
+    "Mean_Absolute_Shift_meters": 0.020959697944086024,
+    "Mean_Reliability_percent": 57.954468255967285,
+    "Mean_SSIM_Before": 0.1505476486039005,
+    "Mean_SSIM_After": 0.16946991639535566
+}

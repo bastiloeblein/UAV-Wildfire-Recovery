@@ -1,0 +1,19 @@
+{
+    "Status": "Success",
+    "Shift_X_meters": -0.590026147547178,
+    "Shift_Y_meters": 1.6646111896261573,
+    "Vector_Length_meters": 1.7660864269389467,
+    "Vector_Angle_degrees": 160.48298423286855,
+    "Confidence_Reliability_percent": 46.39523428221779,
+    "SSIM_Before": 0.1390251848986086,
+    "SSIM_After": 0.18512327642344117,
+    "SSIM_Improved": true,
+    "Matching_Window_Position_XY": [
+        557178.18,
+        4219534.37
+    ],
+    "Matching_Window_Size": [
+        2048,
+        2048
+    ]
+}

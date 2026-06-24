@@ -10,7 +10,7 @@ def main():
     # 1. DEFINE PATHS
     folder_path = "../../Data/6_Cropped_Images"
     input_image_name = "250821_resampled_cropped.tif"
-    folder_out = "../../Data/6_1_Segemented_Image_LC"
+    folder_out = "../../Data/7_OBIA_Segmentation"
     os.makedirs(folder_out, exist_ok=True) 
     
     # Radius used in paper

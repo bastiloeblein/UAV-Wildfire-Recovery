@@ -23,8 +23,9 @@ The study area is located in a mixed agricultural zone (vineyards and olive grov
 
 *Visual examples of the study area over time:*
 <p align="center">
-  <img src="docs/images/250821_original.png" width="45%" title="21.08.2025: Immediate Post-Fire">
-  <img src="docs/images/260222_original.png" width="45%" title="22.02.2026: 6 Months Recovery">
+  <img src="docs/images/250821_original.png" width="45%">
+  <img src="docs/images/260222_original.png" width="45%"><br>
+  <b>Fig 1:</b> Immediate Post-Fire (21.08.2025) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>Fig 2:</b> 6 Months Recovery (22.02.2026)
 </p>
 
 ## ⚙️ Methodology & Pipeline
@@ -81,9 +82,10 @@ To generate a baseline of training data without exhaustive manual labeling, we d
 
 *Visualizing the pixel-level heuristic labels:*
 <p align="center">
-  <img src="docs/images/pixel_trees_chm.png" width="30%" title="1. Tree Pixels (via CHM Otsu)">
-  <img src="docs/images/pixel_healthy_exg.png" width="30%" title="2. Healthy Veg (via ExG Otsu)">
-  <img src="docs/images/pixel_vine_isolated.png" width="30%" title="3. Isolated Healthy Vines (ExG minus Trees)">
+  <img src="docs/images/pixel_trees_chm.png" width="30%">
+  <img src="docs/images/pixel_healthy_exg.png" width="30%">
+  <img src="docs/images/pixel_vine_isolated.png" width="30%"><br>
+  <b>Fig 1:</b> Trees (CHM Otsu) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>Fig 2:</b> Healthy Veg (ExG Otsu) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>Fig 3:</b> Isolated Vines
 </p>
 
 #### 3. Label Transfer to Polygons
@@ -94,7 +96,10 @@ This automated process rapidly yielded a strong foundational dataset of:
 
 *Visualizing the final automated object labels:*
 <p align="center">
-  <img src="docs/images/automated_labeling_overview.png" width="45%" title="Labeled Polygons">
+  <img src="docs/images/poly_trees.png" width="30%">
+  <img src="docs/images/poly_vines.png" width="30%">
+  <img src="docs/images/combined_overview.png" width="30%"><br>
+  <b>Fig A:</b> Trees (Class 20) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>Fig B:</b> Vines (Class 10) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>Fig C:</b> Combined
 </p>
 
 #### 4. Manual Enrichment & Final Training Dataset

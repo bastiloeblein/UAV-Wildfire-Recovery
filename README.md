@@ -23,8 +23,8 @@ The study area is located in a mixed agricultural zone (vineyards and olive grov
 
 *Visual examples of the study area over time:*
 <p align="center">
-  <img src="docs/images/rgb_21082025.png" width="45%" title="Immediate Post-Fire">
-  <img src="docs/images/rgb_22022026.png" width="45%" title="6 Months Recovery">
+  <img src="docs/images/250821_original.png" width="45%" title="21.08.2025: Immediate Post-Fire">
+  <img src="docs/images/260222_original.png" width="45%" title="22.02.2026: 6 Months Recovery">
 </p>
 
 ## ⚙️ Methodology & Pipeline
@@ -34,11 +34,11 @@ The pipeline is structured into several sequential processing steps to ensure sp
 ### Step 1: Data Preparation, Coregistration & Resampling
 To perform accurate time-series analysis, all pixels across all dates must align perfectly. If a pixel represents a specific area in August 2025, the exact same pixel must represent the exact same area in February 2026.
 
-1. **Data Stacking:** The independent DSM is stacked with the RGB imagery to form a 4-channel (R-G-B-DSM) composite for each flight date.
-2. **Master Reference Selection:** The image from **October 26, 2025**, serves as the master reference. This mid-sequence date was selected to minimize the relative temporal and structural shift between all images.
+1. **Data Stacking:** The separate DSM is stacked with the RGB imagery to form a 4-channel (R-G-B-DSM) composite for each flight date.
+2. **Master Reference Selection:** The image from **October 26, 2025**, serves as the master reference. This mid-sequence date was selected to minimize the relative temporal and structural shift between all images and to assure similarity to each image.
 3. **Coregistration ([AROSICS](https://github.com/GFZ/arosics)):** To guarantee high-precision spatial alignment, we employ the AROSICS (Automated and Robust Open-Source Image Co-Registration Software) algorithm in a two-step approach:
-   * **Global Coregistration:** First, a global spatial shift (X/Y translation) is calculated and applied to correct for the absolute geolocation error between the target images and the master reference.
-   * **Local Coregistration:** Subsequently, the globally corrected images re coregistered using the local coregistration algorithm. This accounts for fine-scale, localized geometric distortions and sub-pixel misregistrations.
+   * **Global Coregistration:** First, a global spatial X/Y shift is calculated and applied to correct for the absolute geolocation error between the target images and the master reference.
+   * **Local Coregistration:** Subsequently, the globally corrected images are coregistered using the local coregistration algorithm. This accounts for fine-scale, localized geometric distortions and sub-pixel misregistrations.
 4. **Resampling:** Finally, all images are reprojected and resampled to a strict unified spatial resolution of **2.5 cm/pixel** using `rasterio` (applying `cubic` interpolation). This finalizes the coregistration process, guaranteeing that every image grid is perfectly congruent and ensuring true pixel-to-pixel correspondence across the entire temporal sequence.
 
 ### Step 2: Canopy Height Model (CHM) Derivation
@@ -50,7 +50,7 @@ The original DSM captures the absolute elevation (including the terrain). To iso
   2. *Dilation (Maximum Filter):* Corrects artificial terracing on sloped terrain.
   3. *Gaussian Blur:* Smooths the generated DTM for natural transitions.
 * **Equation:** `CHM = DSM - DTM`
-* **Post-Processing:** Negative height artifacts are clipped to 0, and image boundaries are safely padded with `-9999.0` NoData values to prevent morphological border artifacts.
+* **Post-Processing:** Negative height artifacts are clipped to 0,0 and image boundaries are safely padded with `-9999.0` NoData values to prevent morphological border artifacts.
 
 ### Step 3: AOI Cropping & Feature Engineering
 Before proceeding to classification, the data boundaries needed to be strictly synchronized, and additional spectral features were added to provide the neural network with more predictive power.
@@ -76,8 +76,8 @@ Following the methodology outlined by [Ivošević et al., 2025](https://doi.org/
 #### 2. Automated Heuristic Pre-Labeling (Pixel-Level)
 To generate a baseline of training data without exhaustive manual labeling, we developed a two-step automated labeling heuristic utilizing the `OTSU threshold` implementation of `scikit-image` :
 
-* **Tree Identification:** An Otsu threshold (CHM > `0.4199`) was calculated for the Canopy Height Model (CHM). ixels exceeding this threshold reliably separated tall structures (Olive Trees, both healthy and burned) from ground features and lower-lying vegetation. 
-* **Healthy Vine Identification:** A secondary Otsu threshold was applied specifically to the ExG index map (calculating a threshold of ExG > `0.4433`). This isolates all healthy, photosynthetically active vegetation. By subsequently subtracting the previously identified Tree pixels from this vegetation mask, the remaining pixels robustly identify Healthy Vines.
+* **Tree Identification:** An Otsu threshold (CHM > `0.4199`) was calculated for the Canopy Height Model (CHM). Pixels exceeding this threshold reliably separated tall structures (Olive Trees, both healthy and burned) from ground features and lower-lying vegetation. 
+* **Healthy Vine Identification:** A secondary Otsu threshold was applied specifically to the ExG channel (ExG > `0.4433`). This isolates all healthy, photosynthetically active vegetation. By subsequently subtracting the previously identified Tree pixels from this vegetation mask, the remaining pixels robustly identify Healthy Vines.
 
 *Visualizing the pixel-level heuristic labels:*
 <p align="center">
@@ -94,8 +94,7 @@ This automated process rapidly yielded a strong foundational dataset of:
 
 *Visualizing the final automated object labels:*
 <p align="center">
-  <img src="docs/images/poly_trees.png" width="45%" title="Polygons Labeled as Trees">
-  <img src="docs/images/poly_vines.png" width="45%" title="Polygons Labeled as Healthy Vines">
+  <img src="docs/images/automated_labeling_overview.png" width="45%" title="Labeled Polygons">
 </p>
 
 #### 4. Manual Enrichment & Final Training Dataset
@@ -108,15 +107,17 @@ While the automated heuristic successfully mapped vital vegetation and trees, th
 
 Merging the automated heuristic labels with the manual QGIS annotations resulted in the final, comprehensive training dataset. The data exhibits a natural, real-world class imbalance, totaling over 160,000 labeled samples:
 
---- FINAL TRAINING DATASET CLASS DISTRIBUTION ---
-Class '-1' (Unlabeled/Target): 372,085 polygons
-Class '30' (Bare Soil)       :  64,421 polygons
-Class '20' (Olive Tree)      :  45,837 polygons
-Class '10' (Vineyard Vital)  :  26,969 polygons
-Class '40' (Burned Area)     :  23,956 polygons
-Class '15' (Vineyard Burned) :   3,247 polygons
--------------------------------------------------
-(Polygons marked as -1 remained unclassified during the training data generation phase and act as the targets for the CNN prediction).
+| Class ID | Landcover Class | Polygon Count | Share (%) |
+| :--- | :--- | :--- | :--- |
+| **-1** | Unlabeled (Target) | 372,085 | 69.2% |
+| **30** | Bare Soil | 64,421 | 12.0% |
+| **20** | Olive Tree | 45,837 | 8.5% |
+| **10** | Vineyard (Vital) | 26,969 | 5.0% |
+| **40** | Burned Area | 23,956 | 4.5% |
+| **15** | Vineyard (Burned) | 3,247 | 0.8% |
+| **Total** | | **536,515** | **100%** |
+
+*(Polygons marked as `-1` serve as the target area for CNN prediction, while the remaining ~164k samples represent the robust training foundation).*
    
 ### Step 5: Deep Learning Landcover Classification (CNN)
 With the labeled polygons and the 7-channel August 2025 image ready, a Convolutional Neural Network (CNN) was trained to classify the landscape. The architecture and training pipeline were adapted from [Rana Vaqcar's CNN implementation](https://github.com/ranavaqcar1989/CNN-Training-pipeline) and customized for this specific application.

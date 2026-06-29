@@ -1,5 +1,4 @@
 import os
-import sys
 import geopandas as gpd
 import pandas as pd
 import numpy as np
@@ -82,12 +81,12 @@ def main():
     base_path = curr_dir.parent.parent
     
     # 1. Define where the Random Forest saved the split data
-    rf_dir = os.path.join(base_path, "Data", "10_Landcover_Classification", "RF")
+    rf_dir = os.path.join(base_path, "Data", "10_Landcover_Classification", "RF", "v3")
     train_shp = os.path.join(rf_dir, "rf_train_split.shp")
     val_shp = os.path.join(rf_dir, "rf_val_split.shp")
     
     # 2. Define where your fully classified map is located
-    classified_shp = os.path.join(rf_dir, "Classified_Full_Map.shp") 
+    classified_shp = os.path.join(rf_dir, "Classified_Full_Map_RF.shp") 
     
     # Safety Check: Did OTB actually output the full map yet?
     if not os.path.exists(classified_shp):

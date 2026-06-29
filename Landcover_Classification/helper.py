@@ -2,8 +2,6 @@ import os
 import random
 import numpy as np
 import tensorflow as tf
-from sklearn.model_selection import train_test_split
-import geopandas as gpd
 from sklearn.model_selection import GroupShuffleSplit
 
 

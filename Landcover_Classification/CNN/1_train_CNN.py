@@ -68,6 +68,14 @@ class CNNSegmentor:
             
             self.channels = image.shape[-1]
             print(f"Active image shape for CNN tracking: {image.shape}")
+
+            nan_count = np.isnan(image).sum()
+            inf_count = np.isinf(image).sum()
+            if nan_count > 0 or inf_count > 0:
+                print(f"🚨 WARNING: {nan_count} NaNs and {inf_count} Inf values found!")
+                print(" -> Replace NaN Pixel by -1.0...")
+                image = np.nan_to_num(image, nan=-1.0, posinf=-1.0, neginf=-1.0)
+            # ==========================================
             
             # --- CNN NoData Fix (Zero-Padding Implementation) ---
             # Replaces hazardous -9999.0 background/shadow values with to -1.0
@@ -275,7 +283,7 @@ def main():
     labels_path = os.path.join(labels_dir, "training_data_final.shp") 
 
     # Define Output Dir
-    result_dir = os.path.join(base_path, "Data", "10_Landcover_Classification", "CNN", "v2")
+    result_dir = os.path.join(base_path, "Data", "10_Landcover_Classification", "CNN", "v3")
     
     # --- CONFIGURABLE EXPERIMENT PARAMETERS ---
     target_window_size = (128, 128)

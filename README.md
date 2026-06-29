@@ -25,8 +25,9 @@ The study area is located in a mixed agricultural zone (vineyards and olive grov
 *Visual examples of the study area over time:*
 <p align="center">
   <img src="docs/images/250821_original.png" width="45%">
+  <img src="docs/images/251026_True_Ortho.png" width="45%">
   <img src="docs/images/260222_original.png" width="45%"><br>
-  <b>Fig 1:</b> Immediate Post-Fire (21.08.2025) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>Fig 2:</b> 6 Months Recovery (22.02.2026)
+  <b>Fig 1:</b> Immediate Post-Fire (21.08.2025) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>Fig 2:</b> 2 Months Recovery (26.10.2025) <b>Fig 3:</b> 6 Months Recovery (22.02.2026)
 </p>
 
 ## ⚙️ Methodology & Pipeline
@@ -127,12 +128,12 @@ Merging the automated heuristic labels with the manual QGIS annotations resulted
 
 | Class ID | Landcover Class | Polygon Count | Share (%) |
 | :--- | :--- | :--- | :--- |
-| **-1** | Unlabeled (Target) | 372,085 | 69.2% |
-| **30** | Bare Soil | 64,421 | 12.0% |
-| **20** | Olive Tree | 45,837 | 8.5% |
-| **10** | Vineyard (Vital) | 26,969 | 5.0% |
-| **40** | Burned Area | 23,956 | 4.5% |
-| **15** | Vineyard (Burned) | 3,247 | 0.8% |
+| **-1** | Unlabeled (Target) | 370,494 | 69.06% |
+| **30** | Bare Soil | 65,011  | 12.12% |
+| **20** | Olive Tree | 45,836 | 8.54% |
+| **10** | Vineyard (Vital) | 26,966 | 5.03% |
+| **40** | Burned Area | 23,955 | 4.46% |
+| **15** | Vineyard (Burned) | 4,253  | 0.79% |
 | **Total** | | **536,515** | **100%** |
 
 *(Polygons marked as `-1` serve as the target area for CNN prediction, while the remaining ~164k samples represent the robust training foundation).*
@@ -178,7 +179,7 @@ The models' performance is quantified using Overall Accuracy and the Cohen’s K
 
 | Model | Overall Accuracy | Cohen's Kappa Index |
 | :--- | :---: | :---: |
-| **Random Forest (OTB Baseline)** | **97.13%** | **0.9586** |
+| **Random Forest (OTB Baseline)** | **97.15%** | **0.9589** |
 | **CNN (Deep Learning)** | **96.12%** | **0.9444** |
 
 *(Note: Detailed precision, recall, and F1-scores for each specific class can be found in the respective `evaluation_results.txt` files generated during the evaluation phase).*
@@ -196,7 +197,7 @@ The matrices below illustrate the predictive performance of both models. While t
 The true utility of the models is visualized when inference is run across the entire Area of Interest. The following maps represent the final spatial predictions, providing a high-resolution, quantitative overview of the post-fire ecosystem and the varying degrees of vegetation recovery.
 
 <p align="center">
-  <img src="docs/images/rf_classification_map.png" width="48%">
+  <img src="docs/images/RF_Classified_Map.png" width="48%">
   <img src="docs/images/cnn_classification_map.png" width="48%"><br>
   <b>Map 1:</b> Final Prediction (Random Forest) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>Map 2:</b> Final Prediction (CNN)
 </p>
@@ -213,7 +214,7 @@ Following the classification, we conducted a preliminary analysis to quantify ec
 The plot below illustrates the mean index values for each landcover class throughout the monitoring period. The diverging trends underscore the distinct recovery rates between photosynthetically active vegetation and soil/burned surfaces.
 
 <p align="center">
-  <img src="docs/images/temporal_evolution_indices.png" width="90%">
+  <img src="docs/images/temporal_evolution_indices.png" width="90%"><br>
   <b>Fig 4:</b> Temporal evolution of vegetation indices per landcover class, documenting ecosystem recovery from August 2025 to February 2026.
 </p>
 

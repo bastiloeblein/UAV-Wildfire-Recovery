@@ -3,7 +3,6 @@ import json
 import numpy as np
 import rasterio
 from rasterio.warp import reproject, Resampling
-from rasterio.windows import from_bounds
 from rasterio.transform import from_origin
 from arosics import COREG_LOCAL, COREG
 from skimage.exposure import rescale_intensity
@@ -191,9 +190,9 @@ def run_global_coregistration(ref_image_path, target_image_paths, out_dir_global
         window_plot_file = os.path.join(flight_dir, f"{basename}_matching_window_comparison.png")
         scps_plot_file = os.path.join(flight_dir, f"{basename}_cross_power_spectrum.png")
 
-        print(f"\n=========================================")
+        print("\n=========================================")
         print(f"--- Processing: {basename} ---")
-        print(f"=========================================")
+        print("=========================================")
     
         try:
             CRL = COREG(
@@ -207,7 +206,7 @@ def run_global_coregistration(ref_image_path, target_image_paths, out_dir_global
                 raise Exception("Normal matching failed, triggering fallback.")
             
         except Exception as e:
-            print(f"Standard-Matching failed. Use new coordinates!")
+            print(f"Standard-Matching failed. Use new coordinates! {e}")
             fallback_kwargs = kwargs_global.copy()
             fallback_kwargs["wp"] = (557178.18, 4219534.37)
             CRL = COREG(
@@ -310,9 +309,9 @@ def run_local_coregistration(ref_image_path, target_image_paths, out_dir_local, 
         plot_vectors_file = os.path.join(flight_dir, f"{basename}_plot_vectors.png")
         json_file = os.path.join(flight_dir, f"{basename}_report.json")
 
-        print(f"\n=========================================")
+        print("\n=========================================")
         print(f"--- Processing LOCAL: {basename} ---")
-        print(f"=========================================")
+        print("=========================================")
 
         CRL = COREG_LOCAL(
             ref_image_path,

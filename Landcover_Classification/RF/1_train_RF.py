@@ -159,7 +159,7 @@ def main():
     master_shp = os.path.join(labels_dir, "training_data_final.shp") 
 
     # Define Output Dir for RF Results
-    result_dir = os.path.join(base_path, "Data", "10_Landcover_Classification", "RF",  "v2")
+    result_dir = os.path.join(base_path, "Data", "10_Landcover_Classification", "RF",  "v3")
     os.makedirs(result_dir, exist_ok=True)
     
     # Output Paths for the temporary split files

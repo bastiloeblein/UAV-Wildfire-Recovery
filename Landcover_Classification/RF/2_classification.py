@@ -1,5 +1,4 @@
 import os
-import sys
 from pathlib import Path
 import otbApplication as otb
 
@@ -51,12 +50,12 @@ def main():
     base_path = curr_dir.parent.parent
     print(f"Base path automatically set to: {str(base_path)}")
 
-    # Input Master Shapefile (
+    # Input Master Shapefile 
     labels_dir = os.path.join(base_path, "Data", "9_Training_Data")
-    input_vector = os.path.join(labels_dir, "final_training_data_qgis.shp") 
+    input_vector = os.path.join(labels_dir, "training_data_rf_ready.shp") 
     
     # Directory where your Random Forest model lives
-    rf_dir = os.path.join(base_path, "Data", "10_Landcover_Classification", "RF")
+    rf_dir = os.path.join(base_path, "Data", "10_Landcover_Classification", "RF", "v3")
     model_file = os.path.join(rf_dir, "rf_model.txt")
     
     # Output file: The completely classified map ready for QGIS

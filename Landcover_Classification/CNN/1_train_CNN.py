@@ -57,7 +57,7 @@ class CNNSegmentor:
         print(f"Loading raster image: {os.path.basename(self.image_path)}...")
         with rasterio.open(self.image_path) as src:
             # Read all bands
-            image = src.read()
+            image = src.read().astype(np.float32)
             # Convert from (Channels, Height, Width) to Keras format (Height, Width, Channels)
             image = np.moveaxis(image, 0, -1)
             
@@ -148,70 +148,6 @@ class CNNSegmentor:
         
         return y_train_enc, y_test_enc, y_train_cat, y_test_cat, label_encoder
 
-    def augment_data(self, X, y):
-        """Augmentation (Rotation/Flip), to increase robustness."""
-        print("Applying data augmentation (Rotation/Flip) on training data...")
-        datagen = ImageDataGenerator(
-            rotation_range=20, 
-            horizontal_flip=True,
-            vertical_flip=True
-        )
-
-        # datagen = ImageDataGenerator(rotation_range=15, width_shift_range=0.1,
-        #                              height_shift_range=0.1, shear_range=0.2,
-        #                              zoom_range=0.1, horizontal_flip=True)
-        
-        # Doubles data set
-        X_aug, y_aug = next(datagen.flow(X, y, batch_size=len(X), shuffle=False))
-        
-        X_combined = np.concatenate((X, X_aug), axis=0)
-        y_combined = np.concatenate((y, y_aug), axis=0)
-        
-        return X_combined, y_combined
-
-    # def augment_data(self, X, y):
-    #     """Applies data augmentation to balance the classes perfectly."""
-    #     print("Augmenting data to balance class distribution...")
-    #     class_counts = np.bincount(np.argmax(y, axis=1))
-    #     max_count = class_counts.max()
-        
-    #     augmented_images = []
-    #     augmented_labels = []
-
-    #     datagen = ImageDataGenerator(
-    #         rotation_range=15, 
-    #         width_shift_range=0.1,
-    #         height_shift_range=0.1, 
-    #         shear_range=0.2,
-    #         zoom_range=0.1, 
-    #         horizontal_flip=True
-    #     )
-
-    #     for class_idx in range(len(class_counts)):
-    #         class_mask = np.argmax(y, axis=1) == class_idx
-    #         class_images = X[class_mask]
-    #         class_labels = y[class_mask]
-
-    #         if class_counts[class_idx] < max_count:
-    #             augment_size = max_count - class_counts[class_idx]
-    #             i = 0
-    #             for batch in datagen.flow(class_images, class_labels, batch_size=1):
-    #                 # Re-shaping correctly based on the dynamically selected channels
-    #                 augmented_images.append(batch[0].reshape(self.img_size[0], self.img_size[1], self.channels))
-    #                 augmented_labels.append(batch[1].reshape(y.shape[1]))
-    #                 i += 1
-    #                 if i >= augment_size:
-    #                     break
-
-    #     if augmented_images:
-    #         X_augmented = np.array(augmented_images)
-    #         y_augmented = np.array(augmented_labels)
-    #         X = np.concatenate((X, X_augmented), axis=0)
-    #         y = np.concatenate((y, y_augmented), axis=0)
-
-    #     print(f"Data perfectly balanced! Total training samples: {len(X)}.")
-    #     return X, y
-
     def build_cnn(self, num_classes):
         print("Building CNN architecture...")
         model = Sequential()
@@ -262,12 +198,27 @@ class CNNSegmentor:
 
         reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5, min_lr=1e-6, verbose=1)
         early_stop = EarlyStopping(monitor='val_loss', patience=30, restore_best_weights=True, verbose=1)
-        
+
+        # ON-THE-FLY AUGMENTATION
+        print("Initializing Data Generator for on-the-fly augmentation...")
+        datagen = ImageDataGenerator(
+            rotation_range=20, 
+            horizontal_flip=True,
+            vertical_flip=True
+        )
+        train_generator = datagen.flow(X_train, y_train_cat, batch_size=32)
+
+        val_datagen = ImageDataGenerator()
+        val_generator = val_datagen.flow(X_test, y_test_cat, batch_size=32, shuffle=False)
+
+        # Train the model using the generator
+        print("Starting Training on GPU...")
         history = model.fit(
-            X_train, y_train_cat, 
+            train_generator, 
             epochs=200, 
             batch_size=32, 
-            validation_data=(X_test, y_test_cat),
+            # validation_data=(X_test, y_test_cat),
+            validation_data=val_generator,
             callbacks=[early_stop, reduce_lr],
             class_weight=class_weight_dict 
         )
@@ -277,7 +228,7 @@ class CNNSegmentor:
     def evaluate_cnn(self, model, X_test, y_test, label_encoder):
         """Evaluates the model and generates accuracy reports and matrices."""
         print("Evaluating model...")
-        y_pred = model.predict(X_test)
+        y_pred = model.predict(X_test, batch_size=32)
         y_pred_classes = np.argmax(y_pred, axis=1)
         y_true = np.argmax(y_test, axis=1)
         
@@ -321,10 +272,10 @@ def main():
 
     # Get Labels
     labels_dir = os.path.join(base_path, "Data", "9_Training_Data")
-    labels_path = os.path.join(labels_dir, "final_training_data_qgis.shp") 
+    labels_path = os.path.join(labels_dir, "training_data_final.shp") 
 
     # Define Output Dir
-    result_dir = os.path.join(base_path, "Data", "10_Landcover_Classification", "CNN")
+    result_dir = os.path.join(base_path, "Data", "10_Landcover_Classification", "CNN", "v2")
     
     # --- CONFIGURABLE EXPERIMENT PARAMETERS ---
     target_window_size = (128, 128)
@@ -358,14 +309,9 @@ def main():
     # Process Labels
     y_train_enc, y_test_enc, y_train_cat, y_test_cat, label_encoder = segmentor.preprocess_labels(labels_train, labels_test)
 
-    # AUGMENTATION
-    X_train_aug, y_train_cat_aug = segmentor.augment_data(X_train, y_train_cat)
-    # y_train_enc musst be doubled for class_weights
-    y_train_enc_aug = np.concatenate((y_train_enc, y_train_enc), axis=0)
-
     # TRAINING & EVALUATION
     model = segmentor.build_cnn(num_classes=len(label_encoder.classes_))
-    segmentor.train_cnn(model, X_train_aug, y_train_cat_aug, y_train_enc_aug, X_test, y_test_cat)
+    segmentor.train_cnn(model, X_train, y_train_cat, y_train_enc, X_test, y_test_cat)
     segmentor.evaluate_cnn(model, X_test, y_test_cat, label_encoder)
     
     print(f"\n--- DONE! Results can be found in: {segmentor.result_folder} ---")

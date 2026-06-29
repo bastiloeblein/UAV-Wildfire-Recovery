@@ -1,8 +1,9 @@
 import os
 import sys
-import geopandas as gpd
 import otbApplication as otb
+import geopandas as gpd
 from pathlib import Path
+import numpy as np
 
 # Machine Learning / Metrics Imports (Same as CNN script)
 from sklearn.metrics import cohen_kappa_score, classification_report, confusion_matrix
@@ -12,6 +13,7 @@ import seaborn as sns
 curr_dir = Path.cwd()
 parent_dir = curr_dir.parent
 sys.path.append(str(parent_dir))
+print(parent_dir)
 from helper import set_global_seeds, split_polygons_leakage_free
 
 # This code is adapted from: https://github.com/pajevicnina/inspire1-seg
@@ -154,10 +156,10 @@ def main():
 
     # Get Labels
     labels_dir = os.path.join(base_path, "Data", "9_Training_Data")
-    master_shp = os.path.join(labels_dir, "final_training_data_qgis.shp") # adapt 
+    master_shp = os.path.join(labels_dir, "training_data_final.shp") 
 
     # Define Output Dir for RF Results
-    result_dir = os.path.join(base_path, "Data", "10_Landcover_Classification", "RF")
+    result_dir = os.path.join(base_path, "Data", "10_Landcover_Classification", "RF",  "v2")
     os.makedirs(result_dir, exist_ok=True)
     
     # Output Paths for the temporary split files

@@ -161,8 +161,6 @@ To ensure the model learns effectively despite the heavily imbalanced dataset, s
 * **On-the-Fly Data Augmentation:** Training patches were dynamically rotated and flipped. This artificially expands the dataset and makes the model invariant to the orientation of trees or vine rows.
 * **Optimization:** Trained over a maximum of 200 epochs using the Adam optimizer (`lr=0.0005`), supported by `ReduceLROnPlateau` (to fine-tune learning as it converges) and `EarlyStopping` (to halt training and restore the best weights if validation loss stops improving).
 
----
-
 ### Step 6: Random Forest Classification (Baseline Comparison)
 To evaluate the Deep Learning results against a traditional Machine Learning approach, a Random Forest (RF) classifier was implemented, adapted from [Pajevic's implementation](https://github.com/pajevicnina/inspire1-seg).
 
@@ -201,6 +199,22 @@ The true utility of the models is visualized when inference is run across the en
   <img src="docs/images/rf_classification_map.png" width="48%">
   <img src="docs/images/cnn_classification_map.png" width="48%"><br>
   <b>Map 1:</b> Final Prediction (Random Forest) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>Map 2:</b> Final Prediction (CNN)
+</p>
+
+---
+
+### Step 7: Temporal Evolution Analysis
+Following the classification, we conducted a preliminary analysis to quantify ecosystem recovery. By leveraging the co-registered temporal stack of the 7-channel imagery, we examined the evolution of vegetation indices across five distinct flight dates, ranging from immediate post-fire conditions (August 2025) to six months of recovery (February 2026).
+
+* **Methodology:** We analyzed the spectral trajectory of the ExG, VARI, and NGRDI indices for each landcover class. By masking the imagery with the final Random Forest classification map, we isolated the mean index values for each specific landcover type to visualize their respective recovery dynamics over time.
+* **Objective:** This temporal assessment provides quantitative insights into the regenerative capacity of different vegetation types (specifically vital vs. burned vineyards) and serves as a baseline for understanding the ecological impact of the wildfire event on the local landscape.
+
+#### Vegetation Index Trajectories (ExG, VARI, NGRDI)
+The plot below illustrates the mean index values for each landcover class throughout the monitoring period. The diverging trends underscore the distinct recovery rates between photosynthetically active vegetation and soil/burned surfaces.
+
+<p align="center">
+  <img src="docs/images/temporal_evolution_indices.png" width="90%">
+  <b>Fig 4:</b> Temporal evolution of vegetation indices per landcover class, documenting ecosystem recovery from August 2025 to February 2026.
 </p>
 
 ---

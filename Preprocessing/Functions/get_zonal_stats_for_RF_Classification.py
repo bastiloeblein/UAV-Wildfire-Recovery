@@ -30,14 +30,10 @@ for tif_band in range(1, 8):
     stats = zonal_stats(gdf, image_path, band=tif_band, stats=['mean', 'std'], nodata=-9999.0)
     
     # Write Mean to dataframe (use np.nan if polygon is empty/invalid)
-    gdf[f'meanB{col_idx}'] = [s['mean'] if s['mean'] is not None else np.nan for s in stats]
+    gdf[f'meanB{col_idx}'] = [s['mean'] if s['mean'] is not None else -9999.0 for s in stats]
     
     # Calculate and write Variance (Standard Deviation squared)
-    gdf[f'varB{col_idx}'] = [(s['std'] ** 2) if s['std'] is not None else np.nan for s in stats]
-
-# Calculate overall Brightness using the RGB channels (B0, B1, B2)
-# print("Calculating engineered feature: Brightness...")
-# gdf['Brightness'] = gdf['meanB0'] + gdf['meanB1'] + gdf['meanB2']
+    gdf[f'varB{col_idx}'] = [(s['std'] ** 2) if s['std'] is not None else -9999.0 for s in stats]
 
 print(f"Saving updated shapefile to: {output_shp_path}...")
 gdf.to_file(output_shp_path)

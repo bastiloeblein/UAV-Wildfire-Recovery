@@ -24,9 +24,9 @@ The study area is located in a mixed agricultural zone (vineyards and olive grov
 
 *Visual examples of the study area over time:*
 <p align="center">
-  <img src="docs/images/250821_original.png" width="45%">
-  <img src="docs/images/251026_True_Ortho.png" width="45%">
-  <img src="docs/images/260222_original.png" width="45%"><br>
+  <img src="docs/images/250821_original.png" width="30%">
+  <img src="docs/images/251026_True_Ortho.png" width="30%">
+  <img src="docs/images/260222_original.png" width="30%"><br>
   <b>Fig 1:</b> Immediate Post-Fire (21.08.2025) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>Fig 2:</b> 2 Months Recovery (26.10.2025) <b>Fig 3:</b> 6 Months Recovery (22.02.2026)
 </p>
 

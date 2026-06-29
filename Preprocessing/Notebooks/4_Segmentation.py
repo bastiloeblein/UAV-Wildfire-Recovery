@@ -73,7 +73,7 @@ def main():
     app3.SetParameterString("out", out_shp)
     app3.ExecuteAndWriteOutput()
 
-    print(f"\n--- Done! ---")
+    print("\n--- Done! ---")
 
 if __name__ == "__main__":
     # Do this in console: source /net/home/sloeblein/otb-9.1.0/otbenv.profile 

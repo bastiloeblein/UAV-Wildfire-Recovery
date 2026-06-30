@@ -199,7 +199,7 @@ The true utility of the models is visualized when inference is run across the en
 
 <p align="center">
   <img src="docs/images/RF_Classified_Map.png" width="48%">
-  <img src="docs/images/cnn_classified_map_final" width="48%"><br>
+  <img src="docs/images/cnn_classified_map_final.png" width="48%"><br>
   <b>Map 1:</b> Final Prediction (Random Forest) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>Map 2:</b> Final Prediction (CNN)
 </p>
 

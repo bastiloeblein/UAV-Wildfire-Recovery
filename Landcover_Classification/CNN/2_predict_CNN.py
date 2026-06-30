@@ -20,7 +20,7 @@ def main():
 
     # Get the FULL, unlabeled Shapefile to classify
     labels_dir = os.path.join(base_path, "Data", "9_Training_Data")
-    shapefile_path = os.path.join(labels_dir, "final_training_data_qgis.shp") 
+    shapefile_path = os.path.join(labels_dir, "training_data_final.shp") 
 
     # Define Output Dir (Where the CNN model is saved)
     result_dir = os.path.join(base_path, "Data", "10_Landcover_Classification", "CNN")
@@ -31,7 +31,7 @@ def main():
     
     # Reconstruct the exact folder name generated during training
     ch_suffix = "".join(map(str, selected_channels))
-    model_folder = os.path.join(result_dir, f"cnn_results_w{target_window_size[0]}_ch{ch_suffix}")
+    model_folder = os.path.join(result_dir, f"v3_w{target_window_size[0]}_ch{ch_suffix}")
     
     model_path = os.path.join(model_folder, "cnn_model.h5")
     encoder_path = os.path.join(model_folder, "label_encoder.pkl")
@@ -112,7 +112,11 @@ def main():
 
         # If the polygon is somewhat inside the image, fill the patch and append
         if img_y_max > img_y_min and img_x_max > img_x_min:
-            patch[patch_y_min:patch_y_max, patch_x_min:patch_x_max] = image[img_y_min:img_y_max, img_x_min:img_x_max]
+            patch[patch_y_min:patch_y_max, patch_x_min:patch_x_max] = image[img_y_min:img_y_max, img_x_min:img_x_max]#
+
+            if patch[patch_radius, patch_radius, 0] == -1.0:
+                continue
+                
             X_batch.append(patch)
             index_batch.append(idx)
 

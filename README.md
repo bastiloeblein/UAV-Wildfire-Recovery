@@ -10,9 +10,10 @@ By leveraging both Convolutional Neural Networks (CNNs) and Random Forest (RF) m
 ## 🗂️ Dataset Description
 The study area is located in a mixed agricultural zone (vineyards and olive groves) in **Patras, Greece**. The first flight was conducted shortly after the wildfire, capturing the immediate damage, followed by several monitoring flights in the following months.
 
-* **Sensor:** DJI Mavic 3E - RGB Camera
-* **Spatial Resolution:** ~2.5 cm/pixel
+* **Sensor:** DJI Mavic 3 Enterprise - RGB Camera
+* **Spatial Resolution:**  ~1.5 cm to ~2.5 cm/pixel
   *(Note: Native Ground Sampling Distance (GSD) varies slightly across flight dates, ranging from ~1.5 cm to ~2.5 cm/pixel. All datasets were standardized to a uniform resolution during preprocessing).*
+* **Processing Software:** Pix4Dmapper (Version 4.8.4) for August and September 2025 images and ArcGIS Drone2Map (Version 2025.2.1) for October 2025 and February 2026 images
 * **Provided Data:** RGB Imagery + standalone Digital Surface Model (DSM)
 * **Flight Dates:**
   * `21.08.2025` (Immediate post-fire)
@@ -180,7 +181,7 @@ The models' performance is quantified using Overall Accuracy and the Cohen’s K
 | Model | Overall Accuracy | Cohen's Kappa Index |
 | :--- | :---: | :---: |
 | **Random Forest (OTB Baseline)** | **97.15%** | **0.9589** |
-| **CNN (Deep Learning)** | **96.12%** | **0.9444** |
+| **CNN (Deep Learning)** | **96.82%** | **0.9544** |
 
 *(Note: Detailed precision, recall, and F1-scores for each specific class can be found in the respective `evaluation_results.txt` files generated during the evaluation phase).*
 
@@ -198,7 +199,7 @@ The true utility of the models is visualized when inference is run across the en
 
 <p align="center">
   <img src="docs/images/RF_Classified_Map.png" width="48%">
-  <img src="docs/images/cnn_classification_map.png" width="48%"><br>
+  <img src="docs/images/cnn_classified_map_final" width="48%"><br>
   <b>Map 1:</b> Final Prediction (Random Forest) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>Map 2:</b> Final Prediction (CNN)
 </p>
 

@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import geopandas as gpd
 import otbApplication as otb
 
 # This code is adapted from: https://github.com/pajevicnina/inspire1-seg
@@ -55,11 +56,14 @@ def main():
     input_vector = os.path.join(labels_dir, "training_data_rf_ready.shp") 
     
     # Directory where your Random Forest model lives
-    rf_dir = os.path.join(base_path, "Data", "10_Landcover_Classification", "RF", "v3")
+    rf_dir = os.path.join(base_path, "Data", "10_Landcover_Classification", "RF", "v4")
     model_file = os.path.join(rf_dir, "rf_model.txt")
-    
+        
     # Output file: The completely classified map ready for QGIS
-    output_vector = os.path.join(rf_dir, "Classified_Full_Map_RF.shp")
+    output_vector = os.path.join(
+        rf_dir,
+        "classified_full_map_rf.shp",
+    )
     
     # 2. Safety Checks before running
     if not os.path.exists(model_file):
@@ -70,6 +74,17 @@ def main():
     if not os.path.exists(input_vector):
         print(f"❌ ERROR: Could not find the master shapefile at {input_vector}")
         return
+
+    gdf = gpd.read_file(input_vector)
+
+    if "Predicted" in gdf.columns:
+        gdf = gdf.drop(columns=["Predicted"])
+        clean_input = os.path.join(
+            rf_dir,
+            "full_map_without_prediction.shp",
+        )
+        gdf.to_file(clean_input)
+        input_vector = clean_input
         
     # 3. Execute Pipeline
     classify_vector_data(input_vector, model_file, output_vector)

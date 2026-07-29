@@ -21,10 +21,7 @@ def calculate_statistics(work_dir, classified_shp, train_path, validation_path, 
     print("1. Cleaning classified shapefile and calculating coverage areas...")
     gdf = gpd.read_file(classified_shp)
     
-    # Filter out absolute NoData background.
-    # Since your data is standardized between 0 and 1, any valid polygon will have a mean >= 0.0.
-    # Backgrounds/Shadows that received -9999.0 or -1.0 will be safely removed here.
-    gdf_clean = gdf[gdf['meanB0'] >= 0.0].copy()
+    gdf_clean = gdf[(gdf["meanB0"] >= 0.0) & (gdf["Predicted"] >= 0)].copy()
     
     # Save the cleaned shapefile for final mapping in QGIS
     gdf_clean.to_file(fixed_shp_out)
@@ -126,7 +123,7 @@ def main():
         "Data",
         "10_Landcover_Classification",
         "RF",
-        "v4",
+        "v5",
     )
     classified_shp = os.path.join(rf_dir, "classified_full_map_rf.shp") 
     

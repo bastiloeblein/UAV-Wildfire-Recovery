@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
-import geopandas as gpd
 import otbApplication as otb
+import geopandas as gpd
 
 # This code is adapted from: https://github.com/pajevicnina/inspire1-seg
 
@@ -56,7 +56,7 @@ def main():
     input_vector = os.path.join(labels_dir, "training_data_rf_ready.shp") 
     
     # Directory where your Random Forest model lives
-    rf_dir = os.path.join(base_path, "Data", "10_Landcover_Classification", "RF", "v4")
+    rf_dir = os.path.join(base_path, "Data", "10_Landcover_Classification", "RF", "v5")
     model_file = os.path.join(rf_dir, "rf_model.txt")
         
     # Output file: The completely classified map ready for QGIS

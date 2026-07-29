@@ -28,7 +28,7 @@ def main():
         "Data",
         "10_Landcover_Classification",
         "RF",
-        "v4",
+        "v5",
     )
 
     model_path = os.path.join(result_dir, "rf_model.txt")

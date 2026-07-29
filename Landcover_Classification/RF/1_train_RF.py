@@ -212,7 +212,7 @@ def main():
         "Data",
         "10_Landcover_Classification",
         "RF",
-        "v4",
+        "v5",
     )
     os.makedirs(result_dir, exist_ok=True)
 

@@ -117,7 +117,7 @@ This automated process rapidly yielded a strong foundational dataset of:
   <b>Fig A:</b> Trees (Class 20) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>Fig B:</b> Vines (Class 10) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>Fig C:</b> Combined
 </p>
 
-#### 5. Manual Enrichment & Final Training Dataset
+#### 5. Manual Enrichment & Labeled Training Dataset
 While the automated heuristic successfully mapped vital vegetation and trees, the remaining post-fire landscape features required manual classification. Using QGIS, the automated dataset was extensively enriched by manually labeling and correcting polygons across five distinct target classes:
 * `10`: Vineyard (Vital)
 * `15`: Vineyard (Burned)
@@ -138,61 +138,125 @@ Merging the automated heuristic labels with the manual QGIS annotations resulted
 | **Total** | | **536,515** | **100%** |
 
 *(Polygons marked as `-1` serve as the target area for CNN prediction, while the remaining ~164k samples represent the robust training foundation).*
+
+The complete segmented dataset consisted of 536,515 polygons, including **166,021 labeled polygons** for model development and **370,494 unlabeled target polygons** for subsequent full-map classification.
    
 ### Step 5: Deep Learning Landcover Classification (CNN)
 With the labeled polygons and the 7-channel August 2025 image ready, a Convolutional Neural Network (CNN) was trained to classify the landscape. The architecture and training pipeline were adapted from [Rana Vaqcar's CNN implementation](https://github.com/ranavaqcar1989/CNN-Training-pipeline) and customized for this specific application.
 
 
-#### 1. Spatial Leakage-Free Data Splitting
-Before training, the 160,000+ labeled polygons from the August 2025 dataset were split into a **Training Set (80%)** and a **Validation/Test Set (20%)**.
-A common pitfall in remote sensing is spatial data leakage, where adjacent polygons are randomly divided into training and testing sets, falsely inflating model accuracy. To prevent this, the labeled polygons were split using a strict **Spatial Block-Split methodology**.
-* **Grid Clustering:** The entire Area of Interest was discretely divided into a 50x50 meter spatial grid, resulting in 23 distinct geographic clusters.
-* **Group Split:** The split was performed at the cluster level rather than the polygon level. All polygons falling within a specific 50x50m block were assigned entirely to either the Training Set or the Validation Set. 
-* **Result:** This ensures that the CNN is evaluated on completely unseen geographic regions. Despite the rigidity of block-splitting, the algorithm successfully preserved a healthy representation of all minority classes (e.g., Burned Vineyards) in both sets.
+#### 1. Spatially Separated Train–Validation–Test Design
+A common pitfall in remote sensing is spatial data leakage, where nearby observations are randomly distributed across training and evaluation subsets. Because neighboring polygons originate from the same image and may share similar spectral and structural characteristics, such a random split can produce overly optimistic performance estimates.
+
+To reduce optimistic performance estimates caused by spatial dependence between neighbouring observations, the labelled polygons were partitioned into spatial groups before model training.
+The data were divided into three non-overlapping subsets:
+- **Training set:** used to fit model parameters.
+- **Validation set:** used for early stopping, model development, and comparison between CNN and Random Forest.
+- **Test set:** kept untouched during model development and used once for final performance assessment.
+
+The split was created using a Spatial Block-Split methodology:
+
+- **Grid Clustering:** The Area of Interest was divided into predefined spatial grid blocks. Each labeled polygon was assigned to a block based on its geographic position.
+- **Group-Based Assignment:** All polygons belonging to the same spatial block were assigned entirely to either the training, validation, or test subset. Individual polygons were therefore never randomly distributed across the subsets.
+- **Spatial Guard Buffer:** Polygons located too close to a held-out validation or test area were removed from the respective training subset. This additional buffer reduces dependence between neighboring observations and lowers the risk that spatially overlapping or nearly adjacent CNN patches occur across subsets.
+- **Shared Partitions:** The resulting train, validation, and test partitions were precomputed once and subsequently used for both the CNN and Random Forest workflows.
+
+The table in the **Step 4.5**  describes the complete polygon dataset before spatial partitioning.
+After applying the spatial block split and the 5 m guard buffer, **131,829 labeled polygons** remained for model development and evaluation: **77,067** for **training**, **21,749** for **validation**, and **33,013** for **testing**. The removal of nearby training observations reduced spatial dependence between the subsets while
+largely preserving the original class distribution.
+
+The spatial distribution of the three subsets is shown below. Training, validation, and test polygons occupy distinct parts of the study area, illustrating the block-based partitioning and the spatial 
+separation between model fitting and evaluation data.
+
+<p align="center">
+  <img src="docs/images/Training_Split.png" width="23%">
+  <img src="docs/images/Validation_Split.png" width="23%">
+  <img src="docs/images/Test_Split.png" width="23%">
+  <img src="docs/images/Combined_Splits.png" width="23%"><br>
+  <b>Fig A:</b> Training subset &nbsp;&nbsp;
+  <b>Fig B:</b> Validation subset &nbsp;&nbsp;
+  <b>Fig C:</b> Test subset &nbsp;&nbsp;
+  <b>Fig D:</b> Combined spatial partitions
+</p>
+
+This design provides a more conservative estimate of classification performance on spatially held-out areas within the same August 2025 orthomosaic. It is intended to evaluate the reliability of the landcover classification for this study area and acquisition, rather than transferability to different UAV campaigns, sensors, dates, or geographical locations.
 
 #### 2. Patch Extraction & CNN Architecture
-For every polygon, a `128 x 128` pixel patch was extracted around its geometric centroid, capturing the 7 spectral and structural channels (R, G, B, CHM, ExG, VARI, NGRDI). To ensure stable gradient descent and optimal model convergence, all input variables across the 7 channels were standardized to a [0, 1] range.
+For each polygon, one 128 x 128 pixel patch was extracted around its geometric centroid, capturing the 7 spectral and structural channels (R, G, B, CHM, ExG, VARI, NGRDI). The same centroid-based extraction procedure was applied during training, validation, final testing, and full-map prediction. Polygons for which no complete and valid centroid patch could be extracted were excluded from CNN modelling and evaluation.
+
+To ensure stable gradient descent and optimal model convergence, all input variables across the 7 channels were standardized to a [0, 1] range.
 
 The CNN follows a robust, 4-block architecture designed for spatial feature extraction:
-* **Feature Extraction:** Four sequential blocks consisting of 2D Convolutions (`Conv2D` with increasing filters: 32 → 64 → 128 → 256), `BatchNormalization` (to stabilize learning), and `MaxPooling2D` (to reduce spatial dimensions).
-* **Classification Head:** A `GlobalAveragePooling2D` layer flattens the feature maps, followed by a fully connected `Dense` layer (256 units), `Dropout` (0.5 to prevent overfitting), and a final `Softmax` output layer mapping to the 5 target classes.
+
+- **Feature Extraction:** Four sequential blocks consisting of 2D Convolutions (Conv2D with increasing filters: 32 → 64 → 128 → 256), BatchNormalization (to stabilize learning), and MaxPooling2D (to reduce spatial dimensions).
+- **Classification Head:** A GlobalAveragePooling2D layer flattens the feature maps, followed by a fully connected Dense layer (256 units), Dropout (0.5 to prevent overfitting), and a final Softmax output layer mapping to the 5 target classes.
 
 #### 3. Training Dynamics
 To ensure the model learns effectively despite the heavily imbalanced dataset, several advanced training strategies were employed:
-* **Class Weighting:** The loss function was penalized using balanced class weights, forcing the network to pay significantly more attention to minority classes (e.g., Burned Vines) compared to majority classes (e.g., Bare Soil).
-* **On-the-Fly Data Augmentation:** Training patches were dynamically rotated and flipped. This artificially expands the dataset and makes the model invariant to the orientation of trees or vine rows.
-* **Optimization:** Trained over a maximum of 200 epochs using the Adam optimizer (`lr=0.0005`), supported by `ReduceLROnPlateau` (to fine-tune learning as it converges) and `EarlyStopping` (to halt training and restore the best weights if validation loss stops improving).
+- **Class Weighting:** The loss function was penalized using balanced class weights, forcing the network to pay significantly more attention to minority classes (e.g., Burned Vines) compared to majority classes (e.g., Bare Soil).
+- **On-the-Fly Data Augmentation:** Training patches were dynamically rotated and flipped. This artificially expands the dataset and makes the model invariant to the orientation of trees or vine rows.
+- **Optimization:** Trained over a maximum of 200 epochs using the Adam optimizer (`lr=0.0005`), supported by `ReduceLROnPlateau` (to fine-tune learning as it converges) and `EarlyStopping` (to halt training and restore the best weights if validation loss stops improving).
+- **Independent Final Evaluation:** The spatial test subset was not used for early stopping, architecture decisions, or model comparison. 
 
 ### Step 6: Random Forest Classification (Baseline Comparison)
 To evaluate the Deep Learning results against a traditional Machine Learning approach, a Random Forest (RF) classifier was implemented, adapted from [Pajevic's implementation](https://github.com/pajevicnina/inspire1-seg).
 
-* **Strict 1-to-1 Comparability:** To guarantee a fair methodological comparison, the RF model was trained and evaluated using the *exact same* 50x50m spatial grid clusters generated during the CNN split. Both models learned from and were tested on identical geographic locations.
-* **Feature Extraction:** While the CNN extracts spatial context directly from pixel patches, the RF relies on engineered statistical features. Zonal statistics (Mean and Variance) for all 7 channels were calculated for each polygon, resulting in 14 distinct numerical features per sample.
-* **Hyperparameters:** The model was trained using 100 trees with a maximum depth of 15 to prevent overfitting.
+- **Spatially Aligned Comparison:** The RF model used the same precomputed spatial training, validation, and test partitions as the CNN. This ensures that both approaches are evaluated on the same held-out parts of the study area. Because the CNN requires a complete and valid centroid patch, the number of evaluated CNN samples is additionally reported and checked against the corresponding RF support.
+- **Feature Extraction:** While the CNN extracts spatial context directly from image patches, the RF relies on engineered statistical features. Zonal statistics (Mean and Variance) for all 7 channels were calculated for each polygon, resulting in 14 distinct numerical features per sample.
+- **Hyperparameters:** The model was trained using 100 trees with a maximum depth of 15 and a minimum node size of 5.
+- **Model Development:** The validation subset was used to assess RF performance and compare it with the CNN. The spatial test subset remained untouched until the final evaluation.
 
 
 ## 📊 Classification Results & Model Evaluation
+The CNN and Random Forest were evaluated in two separate stages. First, the spatial validation subset was used for model development and model-type comparison. After that, both models were evaluated once on the independent spatial test subset.
 
-Both the Convolutional Neural Network (CNN) and the Random Forest (RF) baseline were evaluated strictly on the exact same unseen 20% validation spatial clusters. This guarantees a fair, 1-to-1 assessment of their real-world generalization capabilities without spatial data leakage.
+Because the labeled dataset is imbalanced, **Macro-F1** was used as the primary model-comparison metric. It assigns equal importance to every landcover class regardless of its sample size. Balanced Accuracy, Overall Accuracy, and Cohen's Kappa are reported as complementary metrics.
 
-### Quantitative Metrics
-The models' performance is quantified using Overall Accuracy and the Cohen’s Kappa Index (which robustly accounts for chance agreement in our highly imbalanced dataset). Both models achieved exceptional classification results, effectively distinguishing between vital vegetation, burned areas, and bare soil.
+### Validation Results
 
-| Model | Overall Accuracy | Cohen's Kappa Index |
-| :--- | :---: | :---: |
-| **Random Forest (OTB Baseline)** | **97.15%** | **0.9589** |
-| **CNN (Deep Learning)** | **96.82%** | **0.9544** |
+The following table summarizes performance on the spatial validation subset. These results were used to compare the CNN and Random Forest approaches.
 
-*(Note: Detailed precision, recall, and F1-scores for each specific class can be found in the respective `evaluation_results.txt` files generated during the evaluation phase).*
+| Model | Accuracy | Balanced Accuracy | Macro-F1 | Kappa |
+|---|---:|---:|---:|---:|
+| Random Forest | 94.07% | 86.97% | 88.30% | 91.44% |
+| CNN | 94.74% | 92.92% | 92.50% | 92.50% |
 
-### Confusion Matrices
-The matrices below illustrate the predictive performance of both models. While the Random Forest slightly outperformed the CNN in overall accuracy—likely due to the highly engineered zonal statistical features (Mean/Variance of all 7 channels)—both models successfully captured the critical minority classes (e.g., Burned Vineyards).
+*(Note: Detailed precision, recall, and F1-scores for each specific class can be found in the respective `rf_evaluation_results.txt` and `cnn_evaluation_results.txt` files generated during the validation phase).*
+
+### Validation Confusion Matrices
+The validation confusion matrices illustrate class-specific performance during model training. In addition to the overall number of correct predictions, they make it possible to identify systematic confusion between spectrally or structurally similar classes and to assess performance on minority classes such as burned vineyards.
 
 <p align="center">
-  <img src="docs/images/rf_confusion_matrix.png" width="45%">
-  <img src="docs/images/cnn_confusion_matrix.png" width="45%"><br>
+  <img src="docs/images/rf_validation_confusion_matrix.png" width="45%">
+  <img src="docs/images/cnn_validation_confusion_matrix.png" width="45%"><br>
   <b>Fig A:</b> Random Forest Confusion Matrix &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>Fig B:</b> CNN Confusion Matrix
 </p>
+
+The CNN achieved the stronger validation performance, with a slightly higher Overall Accuracy (0.9474 vs. 0.9407) and clearly better Balanced Accuracy (0.9292 vs. 0.8697) and Macro-F1 (0.9250 vs. 0.8830). The main advantage of the CNN was its more balanced class-specific performance, particularly for Burned Vineyard (class 15) and Burned Area (class 40), while both models performed very strongly for Vital Vineyard, Olive Tree, and Bare Soil.
+
+## Final Test Results
+The final test subset remained untouched throughout training, early stopping, hyperparameter selection, and model-family comparison. It was evaluated only after the CNN and RF configurations had been fixed. The resulting metrics therefore provide the final spatially separated performance estimate for the August 2025 orthomosaic.
+
+| Model | Accuracy | Balanced Accuracy | Macro-F1 | Kappa |
+|---|---:|---:|---:|---:|
+| Random Forest | 93.31% | 84.56% | 84.87% | 90.62% |
+| CNN | 93.71% | 93.38% | 92.52% | 91.24% |
+
+*(Note: Detailed precision, recall, and F1-scores for each specific class can be found in the respective `rf_test_evaluation_results.txt` and `cnn_test_evaluation_results.txt` files generated during the final evaluation phase. The corresponding summary metrics are also stored in the generated JSON files.)*
+
+## Final Test Confusion Matrices
+
+The final test confusion matrices provide the class-specific assessment on spatially held-out data that were not used during model development.
+
+<p align="center">
+  <img src="docs/images/rf_test_confusion_matrix.png" width="45%">
+  <img src="docs/images/cnn_test_confusion_matrix.png" width="45%"><br>
+  <b>Fig A:</b> Random Forest Test Confusion Matrix &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>Fig B:</b> CNN Test Confusion Matrix
+</p>
+
+The CNN also showed the stronger performance on the independent spatial test set, achieving a higher Overall Accuracy (0.9371 vs. 0.9331), Balanced Accuracy (0.9338 vs. 0.8456), and Macro-F1 (0.9252 vs. 0.8487). Its largest advantage was the reliable classification of the minority Burned Vineyard class, for which the CNN achieved an F1-score of 0.88 compared with 0.51 for the Random Forest, whereas both models remained highly accurate for the dominant classes.
+
+Based on the predefined Macro-F1 criterion, the CNN should therefore be as the preferred classification approach for the subsequent landcover mapping and recovery analysis.
 
 ### Final Landcover Classification Maps
 The true utility of the models is visualized when inference is run across the entire Area of Interest. The following maps represent the final spatial predictions, providing a high-resolution, quantitative overview of the post-fire ecosystem and the varying degrees of vegetation recovery.

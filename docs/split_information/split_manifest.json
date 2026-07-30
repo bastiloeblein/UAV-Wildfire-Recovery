@@ -1,0 +1,44 @@
+{
+  "source": "../Data/9_Training_Data/training_data_final.shp",
+  "label_col": "Final_Clas",
+  "block_size_m": 25.0,
+  "test_fraction": 0.2,
+  "val_fraction_of_remaining": 0.2,
+  "guard_buffer_m": 5.0,
+  "seed": 42,
+  "summary": {
+    "train": {
+      "n_polygons": 77067,
+      "n_blocks": 41,
+      "class_counts": {
+        "10": 12568,
+        "15": 2036,
+        "20": 20826,
+        "30": 30783,
+        "40": 10854
+      }
+    },
+    "validation": {
+      "n_polygons": 21749,
+      "n_blocks": 11,
+      "class_counts": {
+        "10": 3137,
+        "15": 512,
+        "20": 7154,
+        "30": 8685,
+        "40": 2261
+      }
+    },
+    "test": {
+      "n_polygons": 33013,
+      "n_blocks": 14,
+      "class_counts": {
+        "10": 5425,
+        "15": 625,
+        "20": 9521,
+        "30": 12777,
+        "40": 4665
+      }
+    }
+  }
+}

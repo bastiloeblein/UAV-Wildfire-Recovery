@@ -1,0 +1,17 @@
+accuracy: 0.9407
+balanced_accuracy: 0.8697
+macro_f1: 0.8830
+kappa: 0.9144
+
+Classification Report:
+              precision    recall  f1-score   support
+
+          10       0.97      0.98      0.97      3137
+          15       0.74      0.71      0.73       512
+          20       0.99      0.97      0.98      7154
+          30       0.91      0.98      0.94      8685
+          40       0.89      0.71      0.79      2261
+
+    accuracy                           0.94     21749
+   macro avg       0.90      0.87      0.88     21749
+weighted avg       0.94      0.94      0.94     21749
